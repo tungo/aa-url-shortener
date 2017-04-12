@@ -21,11 +21,19 @@ if choice == '0'
 
   shortened_url = ShortenedUrl.create_short_url(user, url)
   puts "Short url is: #{shortened_url.short_url}"
-
-  Visit.record_visit!(user, shortened_url)
-  Launchy.open(url)
 elsif choice == '1'
+  puts "Type in the shortened URL"
+  url = gets.chomp
 
+  if ShortenedUrl.exists?(short_url: url)
+    shortened_url = ShortenedUrl.find_by(short_url: url)
+    Visit.record_visit!(user, shortened_url)
+    Launchy.open(shortened_url.long_url)
+  else
+    puts "Invalid URL!"
+  end
 else
   puts 'Invalid choice!'
 end
+
+puts "Goodbye!"
