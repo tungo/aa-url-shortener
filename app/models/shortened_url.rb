@@ -1,5 +1,5 @@
 class ShortenedUrl < ActiveRecord::Base
-  validates :user_id, presence: true, uniqueness: true
+  validates :user_id, presence: true
 
   belongs_to :submitter,
              primary_key: :id,
