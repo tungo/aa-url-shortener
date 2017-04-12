@@ -9,4 +9,8 @@ class TagTopic < ActiveRecord::Base
   has_many :shortened_urls,
            through: :taggings,
            source: :shortened_url
+
+  def popular_links
+    shortened_urls.sort_by(&:num_clicks).reverse[0..4]
+  end
 end
