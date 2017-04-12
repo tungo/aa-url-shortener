@@ -1,5 +1,7 @@
 class ShortenedUrl < ActiveRecord::Base
   validates :user_id, presence: true
+  validate :no_spamming
+  validate :nonpremium_max
 
   belongs_to :submitter,
              primary_key: :id,
@@ -46,5 +48,18 @@ class ShortenedUrl < ActiveRecord::Base
 
   def num_recent_uniques
     visits.select(:user_id).distinct.where("created_at > ?", 20.minutes.ago).count
+  end
+
+  private
+  def no_spamming
+    if submitter.submitted_urls.where("created_at > ?", 1.minutes.ago).count > 5
+      errors[:base] << "STOP SPAMMING!"
+    end
+  end
+
+  def nonpremium_max
+    if submitter.submitted_urls.count > 1 && !submitter.premium
+      errors[:base] << "$ Pay to add more URLS $"
+    end
   end
 end
