@@ -34,8 +34,37 @@ class ShortenedUrl < ActiveRecord::Base
     code
   end
 
-  def self.create_short_url(user, long_url)
+  def self.create_for_user_and_long_url!(user, long_url)
     self.create!(user_id: user.id, long_url: long_url, short_url: self.random_code)
+  end
+
+  def self.prune(n)
+    # valid_id = Visit.where("created_at > ?", n.minutes.ago)
+    # .map(&:shortened_url_id).uniq
+    # self.delete_all(['id NOT IN (?)', valid_id])
+    sql = <<-SQL
+      DELETE FROM
+        shortened_urls
+      WHERE
+        id NOT IN (
+          SELECT DISTINCT
+            shortened_url_id
+          FROM
+            visits
+          WHERE
+            created_at >  '#{n.minutes.ago}'
+          ) AND id NOT IN (
+            SELECT DISTINCT
+              shortened_urls.id
+            FROM
+              shortened_urls
+              JOIN users ON shortened_urls.user_id = users.id
+            WHERE
+              premium = true
+          )
+    SQL
+
+    ActiveRecord::Base.connection.execute(sql)
   end
 
   def num_clicks
